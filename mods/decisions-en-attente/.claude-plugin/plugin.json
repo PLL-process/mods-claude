@@ -1,0 +1,6 @@
+{
+  "name": "decisions-en-attente",
+  "version": "0.1.0",
+  "description": "Une bande au-dessus de la saisie : les décisions 🔶 en attente, une réponse d'un clic.",
+  "types": "./types/index.d.ts"
+}

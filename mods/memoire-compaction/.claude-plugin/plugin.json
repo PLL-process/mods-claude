@@ -1,0 +1,5 @@
+{
+  "name": "memoire-compaction",
+  "version": "0.1.0",
+  "description": "Garde les résumés de compaction dans COMPACTIONS.md, sur la branche relais du dépôt."
+}

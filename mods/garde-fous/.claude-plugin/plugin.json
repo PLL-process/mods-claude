@@ -1,0 +1,5 @@
+{
+  "name": "garde-fous",
+  "version": "0.1.0",
+  "description": "Refuse un push sur main, une écriture dans l'archive, un commit quand controle_competences.py est rouge."
+}

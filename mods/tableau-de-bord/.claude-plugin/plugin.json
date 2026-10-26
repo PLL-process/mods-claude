@@ -1,0 +1,6 @@
+{
+  "name": "tableau-de-bord",
+  "version": "0.1.0",
+  "description": "Un panneau : branche, PR et CI, contrôles rapides du dépôt en-ligne-pour-le-cycle-4.",
+  "types": "./types/index.d.ts"
+}

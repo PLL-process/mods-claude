@@ -1,0 +1,12 @@
+{
+  "name": "mods-claude",
+  "owner": { "name": "PLL-process" },
+  "plugins": [
+    { "name": "relais", "source": "./mods/relais" },
+    { "name": "memoire-compaction", "source": "./mods/memoire-compaction" },
+    { "name": "decisions-en-attente", "source": "./mods/decisions-en-attente" },
+    { "name": "tableau-de-bord", "source": "./mods/tableau-de-bord" },
+    { "name": "garde-fous", "source": "./mods/garde-fous" },
+    { "name": "francais-toujours", "source": "./mods/francais-toujours" }
+  ]
+}
