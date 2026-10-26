@@ -23,6 +23,32 @@ async function garder($: Moteur, resume: Resume) {
   await ecrireRelais($, depot, 'COMPACTIONS.md', texte, `Compaction du ${resume.quand}`)
 }
 
+// Le résumé en attente d'écriture : les deux chemins peuvent l'apporter pour la même compaction, à quelques
+// instants d'écart ; le premier fixe le texte, le second n'ajoute que les tailles s'il les a.
+let enAttente: Resume | undefined
+let dernierEcrit = ''
+
+function planifier($: Moteur, resume: Resume) {
+  const cle = resume.texte.slice(0, 400)
+  if (cle === dernierEcrit) return
+  if (enAttente && enAttente.texte.slice(0, 400) === cle) {
+    enAttente.avant ??= resume.avant
+    enAttente.apres ??= resume.apres
+    return
+  }
+  const premier = enAttente === undefined
+  enAttente = resume
+  if (!premier) return
+  // Hors de la compaction : l'écriture sur GitHub ne la retarde pas ; deux secondes laissent l'autre chemin arriver.
+  $.clock.after(2000, () => {
+    const r = enAttente
+    enAttente = undefined
+    if (!r) return
+    dernierEcrit = r.texte.slice(0, 400)
+    void garder($, r).catch(() => undefined)
+  })
+}
+
 export const register: Register = on => {
   on('session.start', async ($, e, next) => {
     await $.command.register({
@@ -32,16 +58,26 @@ export const register: Register = on => {
     return next(e)
   })
 
+  // Deux chemins mènent au même résumé, et le premier arrivé l'écrit :
+  //  · `session.compact`, quand ce mod est dans la chaîne de la compaction ;
+  //  · la ligne de résumé que la compaction ajoute à la conversation (`session.append`, porte `compaction`).
+  //    Le second chemin existe parce qu'un autre plugin peut répondre à la compaction à la place du moteur
+  //    sans la passer plus bas (vu le 26/10/2026 : « cc-plugin-sec-default » l'a fait, et ce mod n'a rien vu).
   on('session.compact', async ($, e, next) => {
     const r = await next(e)
     if (e.trigger === 'precompute' || e.agentId !== undefined || r.messages === undefined) return r
     const texte = r.messages.map(m => m.text).find(t => t.trim().length > 200) ?? r.messages[0]?.text ?? ''
     if (!texte.trim()) return r
-    const resume: Resume = { quand: dateMartinique(await $.clock.now()), texte, avant: r.tokensBefore, apres: r.tokensAfter }
-    // Hors de la compaction : l'écriture sur GitHub ne la retarde pas.
-    $.clock.after(0, () => {
-      void garder($, resume).catch(() => undefined)
-    })
+    planifier($, { quand: dateMartinique(await $.clock.now()), texte, avant: r.tokensBefore, apres: r.tokensAfter })
+    return r
+  })
+
+  on('session.append', { door: 'compaction' }, async ($, e, next) => {
+    const r = await next(e)
+    if (e.agentId !== undefined || e.message.type !== 'user') return r
+    const texte = e.message.content.map(b => (b.type === 'text' ? b.text : '')).join('\n')
+    if (texte.trim().length <= 200) return r
+    planifier($, { quand: dateMartinique(await $.clock.now()), texte })
     return r
   })
 
