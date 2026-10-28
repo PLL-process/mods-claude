@@ -19,23 +19,34 @@ s'écrit par `git push` depuis le clone du dépôt ; sans clone, le mod le dit. 
 
 ## Installer
 
-À l'invite d'une session de terminal, un mod par ligne :
+À l'invite d'une session de terminal, **une commande par message** : tapée seule, une commande `/plugin` s'exécute ;
+collées ensemble, les lignes partent au modèle comme un texte ordinaire, et rien ne s'installe.
+
+D'abord, ajouter la place de marché (une seule fois) :
 
 ```
-/plugin install relais --marketplace PLL-process/mods-claude
-/plugin install memoire-compaction --marketplace PLL-process/mods-claude
-/plugin install decisions-en-attente --marketplace PLL-process/mods-claude
-/plugin install tableau-de-bord --marketplace PLL-process/mods-claude
-/plugin install garde-fous --marketplace PLL-process/mods-claude
-/plugin install francais-toujours --marketplace PLL-process/mods-claude
+/plugin marketplace add PLL-process/mods-claude
 ```
 
-Répondre `y` pour ajouter la place de marché, puis choisir la portée (utilisateur d'abord).
-
-Depuis un shell :
+Puis un mod par message, sous la forme `nom@mods-claude` :
 
 ```
-claude plugin install relais --marketplace PLL-process/mods-claude
+/plugin install relais@mods-claude
+/plugin install memoire-compaction@mods-claude
+/plugin install decisions-en-attente@mods-claude
+/plugin install tableau-de-bord@mods-claude
+/plugin install garde-fous@mods-claude
+/plugin install francais-toujours@mods-claude
+```
+
+Choisir la portée « utilisateur » quand elle est demandée, puis **redémarrer la session** : les mods se chargent au
+démarrage.
+
+Depuis un shell, les mêmes commandes sans la barre oblique :
+
+```
+claude plugin marketplace add PLL-process/mods-claude
+claude plugin install relais@mods-claude
 ```
 
 (et de même pour les cinq autres).
