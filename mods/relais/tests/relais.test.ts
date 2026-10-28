@@ -103,3 +103,27 @@ test('la réponse de Pascal est gardée sans le rappel que l’hôte glisse deva
   expect(relais).not.toMatch(/system-reminder/)
   expect(relais).toMatch(/## Décisions en attente\n_Aucune\._/)
 })
+
+test('une réponse gardée avant le correctif, rappel compris, ne revient pas dans le relais', async ($, on) => {
+  const gh = fauxGithub(on)
+  const horloge = mock.clock(on, { now: Date.UTC(2026, 9, 28, 20, 20) })
+  mock.store(on, {
+    'etat-v1': {
+      notes: '', notesQuand: '', decisions: [], action: '',
+      prises: [
+        { quand: '28/10/2026 13:38', texte: "<system-reminder>The user's timezone is America/Martinique (UTC-04:00).</system-reminder>\n1" },
+        { quand: '26/10/2026 10:00', texte: '1b 2a 3a' },
+      ],
+    },
+  })
+  on('command.register', () => ({ value: { command: 'relais' } }) as never)
+  on('tool.register', () => ({ value: { name: 'mcp__relais__ecrire' } }) as never)
+  on('session.start', (_, e) => ({ cwd: e.cwd }))
+  on('command.run', () => ({ text: 'moteur' }))
+  await $.session.start({ cwd: '/depot', surface: 'desktop', isInteractive: true })
+  await $.tool.call({ tool: 'mcp__relais__ecrire', ou_on_en_est: 'Tout est fusionné.' } as never)
+  await horloge.advance(10)
+  const relais = gh.fichiers.get('RELAIS.md') ?? ''
+  expect(relais).not.toMatch(/system-reminder/)
+  expect(relais).toMatch(/« 1b 2a 3a »/)
+})
