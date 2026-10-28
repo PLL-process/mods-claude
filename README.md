@@ -56,4 +56,4 @@ Plugins, Add marketplace avec `PLL-process/mods-claude`, puis Add plugin.
 
 ## Vérifier
 
-Chaque mod a ses tests : `claude plugin test mods/<mod>` (23 tests en tout).
+Chaque mod a ses tests : `claude plugin test mods/<mod>` (24 tests en tout).

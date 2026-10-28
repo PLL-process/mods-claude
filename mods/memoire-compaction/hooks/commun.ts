@@ -194,9 +194,22 @@ export function lireAction(texte: string): string | null {
   return m ? (m[1] ?? '').replace(/\*\*/g, '').trim() : null
 }
 
+/**
+ * Le texte que Pascal a tapé, sans ce que l'hôte glisse devant ou derrière : des blocs
+ * `<system-reminder>…</system-reminder>` (l'heure d'envoi, des rappels). Sans ce nettoyage, le relais gardait
+ * « <system-reminder>The user's timezone is… </system-reminder> 1 » au lieu de « 1a 2a 3a 4a 5a » (vu le 28/10/2026).
+ */
+export function texteDePascal(texte: string): string {
+  return texte
+    .replace(/<system-reminder>[\s\S]*?<\/system-reminder>/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+}
+
 /** Les réponses « 1a 2b » d'un message de Pascal : { "1": "a", "2": "b" }. */
 export function lireReponses(texte: string): Record<string, string> {
   const out: Record<string, string> = {}
+  texte = texteDePascal(texte)
   for (const m of texte.matchAll(/(?:^|[\s,;])(\d)\s?([a-e])(?=$|[\s,;.!])/gimu)) {
     out[m[1] ?? ''] = (m[2] ?? '').toLowerCase()
   }

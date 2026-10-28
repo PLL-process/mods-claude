@@ -78,3 +78,28 @@ test('sans clone du dépôt, le relais le dit au lieu d’échouer en silence', 
   const r = await $.tool.call({ tool: 'mcp__relais__ecrire', ou_on_en_est: 'x' } as never)
   expect(String((r as { result?: unknown }).result)).toMatch(/NON écrit.*pas cloné/)
 })
+
+test('la réponse de Pascal est gardée sans le rappel que l’hôte glisse devant', async ($, on) => {
+  const gh = fauxGithub(on)
+  const horloge = mock.clock(on, { now: Date.UTC(2026, 9, 28, 17, 38) })
+  mock.store(on)
+  on('command.register', () => ({ value: { command: 'relais' } }) as never)
+  on('tool.register', () => ({ value: { name: 'mcp__relais__ecrire' } }) as never)
+  on('session.start', (_, e) => ({ cwd: e.cwd }))
+  on('turn.complete', (_, e) => ({ text: e.answer }))
+  on('prompt.submit', (_, e) => ({ text: e.text }) as never)
+  on('command.run', () => ({ text: 'moteur' }))
+  await $.session.start({ cwd: '/depot', surface: 'desktop', isInteractive: true })
+  await $.turn.complete({
+    answer: '🔶 1. On publie ?\n- **a (par défaut)** : oui.\n- b : non.\n\n🔶 5. On corrige ?\n- **a (par défaut)** : oui.\n- b : non.',
+    durationMs: 1, isAborted: false, turnId: 't', reason: 'answer',
+  })
+  await horloge.advance(3 * 60 * 1000 + 10)
+  const rappel = "<system-reminder>The user's timezone is America/Martinique (UTC-04:00). Message sent at Wed 2026-10-28 13:38 local time.</system-reminder>"
+  await $.prompt.submit({ text: rappel + '1a 2a 3a 4a 5a' } as never)
+  await horloge.advance(3 * 60 * 1000 + 10)
+  const relais = gh.fichiers.get('RELAIS.md') ?? ''
+  expect(relais).toMatch(/« 1a 2a 3a 4a 5a »/)
+  expect(relais).not.toMatch(/system-reminder/)
+  expect(relais).toMatch(/## Décisions en attente\n_Aucune\._/)
+})
