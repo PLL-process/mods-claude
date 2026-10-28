@@ -40,7 +40,11 @@ const ATTENTE_MS = 3 * 60 * 1000
 async function lireEtat($: Moteur): Promise<Etat> {
   try {
     const v = (await $.store.get(CLE)) as Partial<Etat> | undefined
-    return { ...VIDE, ...(v ?? {}) }
+    const etat = { ...VIDE, ...(v ?? {}) }
+    // Une réponse gardée avant le 28/10/2026 peut porter le rappel de l'hôte, coupé au milieu
+    // (« <system-reminder>… </system-reminder> 1 ») : la réponse vraie est perdue, la ligne est retirée.
+    etat.prises = (etat.prises ?? []).filter(p => !/<\/?system-reminder>/.test(p.texte))
+    return etat
   } catch {
     return { ...VIDE }
   }
