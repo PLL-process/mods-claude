@@ -19,6 +19,7 @@ import {
   lireDecisions,
   lireRelais,
   lireReponses,
+  texteDePascal,
   trouverDepot,
 } from './commun'
 
@@ -210,7 +211,7 @@ export const register: Register = on => {
     const reponses = lireReponses(e.text ?? '')
     if (Object.keys(reponses).length) {
       const etat = await lireEtat($)
-      etat.prises = [{ quand: dateMartinique(await $.clock.now()), texte: (e.text ?? '').trim().slice(0, 140) }, ...etat.prises].slice(0, 8)
+      etat.prises = [{ quand: dateMartinique(await $.clock.now()), texte: texteDePascal(e.text ?? '').slice(0, 140) }, ...etat.prises].slice(0, 8)
       etat.decisions = etat.decisions.filter(d => !(d.n in reponses))
       await $.store.set(CLE, etat)
       plusTard($, 'réponses de Pascal relevées')
